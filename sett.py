@@ -1,8 +1,8 @@
-token = 'bigdateros'
+token ='Dacey_auth'
 
-whatsapp_token = 'ingresa whatsapp token'
+whatsapp_token = 'EAASTetfBLvIBOZCNy7YQYEJgN5xNZAMdc70ZBW6LzkOpTTREc3xFvL7k6nA4IdxWyCNmfAF7a9E7wCJKiDMf6RYZBGVP6XUhHiX5UhRt3Rc8TRqURBvJ83QLDhPOVXcx4ky8mTOgfRP2ndeVs3SofiwaWQMoGSwUZA9DzPUGLcZBwc9ASiirKYDTD0K2zfg2Mf'
 
-whatsapp_url = 'ingresa whatsapp url'
+whatsapp_url = 'https://graph.facebook.com/v17.0/187386554449865/messages'
 
 stickers = {
     "poyo_feliz": 984778742532668,
@@ -20,4 +20,3 @@ stickers = {
     "gato_cansado": 1021308728970759
 }
 
-document_url = "https://www.africau.edu/images/default/sample.pdf"
