@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire Client Assurema</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <!--<img id="logo" src="https://example.com/assurema-logo.png" alt="Assurema Logo">-->
+    <div class="header">
+        <h1>Formulaire Client Assurema</h1>
+    </div>
+    <form id="clientForm">
+        <div>
+            <label for="name"><strong>Nom *</strong> : </label>
+        </div>
+        <div>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="prenom"><strong>Prénom  *</strong>:</label>
+        </div>
+        <div>
+            <input type="text" id="prenom" name="prenom" required>
+        </div>
+        
+        <label for="adresse"><strong>Adresse </strong> :</label>
+        <input type="text" id="adresse" name="adresse" >
+
+        <label for="phone"><strong>Numéro de téléphone *</strong> :</label>
+        <input type="tel" id="phone" name="phone" required>
+        
+        <label for="immatriculation"><strong>Immatriculation *</strong>:</label>
+        <input type="text" id="immatriculation" name="immatriculation" required>
+
+        <div><label for="type_vehicule"><strong>Type de véhicule (Ex: Touristique) *</strong> :</label>
+            <input type="text" id="type_vehicule" name="type_vehicule" required>
+        </div>
+        <div><label for="marque_du_véhicule"><strong>Marque du véhicule *</strong> :</label>
+            <input type="text" id="marque_du_véhicule" name="marque_du_véhicule" required>
+        </div>
+        <button type="button" onclick="submitForm()">Envoyer</button>
+    </form>
+
+    <script>
+        function submitForm() {
+            // Logique pour récupérer les données du formulaire et les envoyer au serveur
+        }
+    </script>
+</body>
+</html>
