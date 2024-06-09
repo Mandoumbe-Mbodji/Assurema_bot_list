@@ -2,10 +2,13 @@ import requests
 import sett
 import json
 import time
+import re
+#import psycopg2
+#from psycopg2 import sql
 
-def obtenir_Msg_whatsapp(message):
+def obtener_Mensaje_whatsapp(message):
     if 'type' not in message :
-        text = 'message non reconnu'
+        text = 'Message Non reconnu'
         return text
 
     typeMessage = message['type']
@@ -23,7 +26,7 @@ def obtenir_Msg_whatsapp(message):
     
     return text
 
-def envoi_Msg_whatsapp(data):
+def enviar_Mensaje_whatsapp(data):
     try:
         whatsapp_token = sett.whatsapp_token
         whatsapp_url = sett.whatsapp_url
@@ -35,9 +38,9 @@ def envoi_Msg_whatsapp(data):
                                  data=data)
         
         if response.status_code == 200:
-            return 'message envoyé', 200
+            return 'Message envoyé', 200
         else:
-            return 'erreur dans l\'envoi du message', response.status_code
+            return 'erreur lors de l\'envoi', response.status_code
     except Exception as e:
         return e,403
     
@@ -116,10 +119,10 @@ def listReply_Message(number, options, body, footer, sedd,messageId):
                     "text": footer
                 },
                 "action": {
-                    "button": "Ver Opciones",
+                    "button": "Voir Options",
                     "sections": [
                         {
-                            "title": "Secciones",
+                            "title": "Sections",
                             "rows": rows
                         }
                     ]
@@ -210,96 +213,158 @@ def markRead_Message(messageId):
         }
     )
     return data
+##################################################recuperation données###########################
+def extract_info_from_text(text):
+    info_patterns = {
+        'prénom': re.compile(r'pr[eé]nom: (.+)', re.IGNORECASE),
+        'nom': re.compile(r'nom: (.+)', re.IGNORECASE),
+        'immatriculation': re.compile(r'immatriculation: (.+)', re.IGNORECASE),
+        # Ajoutez d'autres balises et motifs au besoin
+    }
 
+    extracted_info = {}
+
+    for field, pattern in info_patterns.items():
+        match = pattern.search(text)
+        if match:
+            extracted_info[field] = match.group(1).strip()
+
+    return extracted_info
+  
+#def save_to_database(user_info):
+
+    #prenom = user_info.get('prénom', '')
+    #nom = user_info.get('nom', '')
+    #immatriculation = user_info.get('immatriculation', '')
+
+##################################################recuperation données###########################
 def administrar_chatbot(text,number, messageId, name):
     text = text.lower() #mensaje que envio el usuario
     list = []
-    print("mensaje del usuario: ",text)
+    print("message de l'utilisateur: ",text)
 
     markRead = markRead_Message(messageId)
     list.append(markRead)
     time.sleep(2)
 
-    if "hola" in text:
-        body = "Bonjour 👋 Bienvenue sur Assurema, comment pouvons-nous vous aider aujourd'hui ??"
-        footer = "L\'équipe Assurema"
-        options = ["✅ Assurema_Pack", "✅ Renouvellement assurance"]
-
+    if "bonjour" in text or "salut" in text or "salam" in text or "retour à l'acceuil" in text or "bienvenue sur assurema" in text:
+        body = "Bonjour 👋 Bienvenue sur Assurema votre assurance en ligne.\nComment pouvons-nous vous aider aujourd'hui ?"
+        footer = "Equipe Assurema"
+        options = ["✅ Packs assurances", "📅 Renouvellement","✅ Trouver une agence"]
         replyButtonData = buttonReply_Message(number, options, body, footer, "sed1",messageId)
         replyReaction = replyReaction_Message(number, messageId, "🫡")
         list.append(replyReaction)
         list.append(replyButtonData)
-    elif "Assurema_Pack" in text:
-        body = "Vous avez  le choix entre plusieurs Packs. Lequel de ces Packs Assurema souhaitez-vous explorer ?"
-        footer = "L\'équipe Assurema"
-        options = ["PACK GANALE", "PACK SOPE", "PACK VIP"]
-
+    elif "packs" in text:
+        body = "Veuillez choisir le pack d'assurance qui vous interesse"
+        footer = "Equipe Assurema"
+        options = ["✅ PACK GANALE", "✅ PACK SOPE","✅ PACK VIP","✅ A LA CARTE", "retour à l'acceuil"]
         listReplyData = listReply_Message(number, options, body, footer, "sed2",messageId)
         sticker = sticker_Message(number, get_media_id("perro_traje", "sticker"))
-
         list.append(listReplyData)
         list.append(sticker)
-    elif "PACK VIP" in text:
-        body="Merci d\'avoir choisi le pack VIP, Voulez-vous remplir le formulaire?"
-        footer = "L\'équipe Assurema"
-        options = ["✅ Oui, envoyer le PDF.", "⛔ Non, merci"]
+    elif "pack ganale" in text:
+        body = "Garantie PACK GNALE\n-Responsabilité civile\n-Défense sur recours\n-Personnes transportés"
+        footer = "Equipe Assurema"
+        options = ["✅ OK.", "⛔ Non, Merci", "retour à l'acceuil"]
 
         replyButtonData = buttonReply_Message(number, options, body, footer, "sed3",messageId)
         list.append(replyButtonData)
-    elif "Oui, envoyer le PDF" in text:
+    elif "ok" in text:
         sticker = sticker_Message(number, get_media_id("pelfet", "sticker"))
-        textMessage = text_Message(number,"Très bien, veuillez patienter un instant.")
-
-        envoi_Msg_whatsapp(sticker)
-        envoi_Msg_whatsapp(textMessage)
+        textMessage = text_Message(number,"Très bien, veuillez Renseigner vos informations parexemple: \nprenom: Dacey;\nnom: Fall;\nimmatriculation: AR-490-AP")
+        extracted_info = extract_info_from_text(text)
+        print("Informations extraites:", extracted_info)
+        enviar_Mensaje_whatsapp(sticker)
+        enviar_Mensaje_whatsapp(textMessage)
         time.sleep(3)
 
-        document = document_Message(number, sett.document_url, "Listo 👍🏻", "PACK VIP.pdf")
-        envoi_Msg_whatsapp(document)
+        document = document_Message(number, sett.document_url, "Prêt 👍🏻", "Business Intelligence.pdf")
+        enviar_Mensaje_whatsapp(document)
         time.sleep(3)
 
-        body = "Vous souhaitez prendre rendez-vous avec l\'un de nos spécialistes pour discuter plus en détail de ces Assurema_Pack ?"
-        footer = "L\'équipe Assurema"
-        options = ["✅ Oui, je veux bien", "Non, merci." ]
+        body = "Vous souhaitez prendre rendez-vous avec l'un de nos spécialistes pour discuter plus en détail de ces services ?"
+        footer = "Equipe Assurema"
+        options = ["✅ Si", "Non", "retour à l'acceuil"]
 
         replyButtonData = buttonReply_Message(number, options, body, footer, "sed4",messageId)
         list.append(replyButtonData)
-    elif "Oui, je veux bien" in text :
-        body = "Super. Veuillez sélectionner une date et une heure pour la réunion :"
-        footer = "L\'équipe Assurema"
-        options = ["📅 demain 15:00 AM", "📅 apres demain 15:00 PM", "📅 surlendemain, 15:00 PM"]
+    elif "pack sope" in text:
+        body = "Garanties du PACK SOPE\n-Responsabilité Civile\n-Défense sur recours\n-Personnes transportées\n-Bris de glace"
+        footer = "Equipe Assurema"
+        options = ["✅ OUI.", "⛔ Non, Merci", "retour à l'acceuil"]
 
+        replyButtonData = buttonReply_Message(number, options, body, footer, "sed3",messageId)
+        list.append(replyButtonData)
+    elif "pack vip" in text:
+        body = "Garanties du PACK VIP\n-Responsabilité Civile\n-Défense sur recours\n-Personnes transportées\n-Bris de glace\n-Vol\n-Incendie\n"
+        footer = "Equipe Assurema"
+        options = ["✅ OUI.", "⛔ Non, Merci", "retour à l'acceuil"]
+
+        replyButtonData = buttonReply_Message(number, options, body, footer, "sed3",messageId)
+        list.append(replyButtonData)
+    elif "carte" in text:
+        body = "Ce pack n'est pas encore disponible"
+        footer = "Equipe Assurema"
+        options = ["retour à l'acceuil"]
+        replyButtonData = buttonReply_Message(number, options, body, footer, "sed3",messageId)
+        list.append(replyButtonData)
+    elif "une agence" in text :
+        body = "Liste de nos agences"
+        footer = "Equipe Assurema"
+        options = ["Agence sur la VDN","Agence parcelles","Agence Mbao", "Agence Pikine", "retour à l'acceuil"]
         listReply = listReply_Message(number, options, body, footer, "sed5",messageId)
         list.append(listReply)
-    elif "demain 15:00 AM" in text:
-        body = "Excellent, vous avez sélectionné demain 15 heures. Je vous enverrai un rappel la veille. Vous avez besoin d'aide pour autre chose aujourd'hui ?"
-        footer = "L\'équipe Assurema"
-        options = ["✅ Oui, s'\il vous plait", "❌ Non, merci."]
-
-
+    elif "renouvellement" in text :
+        body = "Vous souhaitez prendre rendez-vous avec l'un de nos spécialistes pour discuter plus en détail de ces services ?"
+        footer = "Equipe Assurema"
+        options = ["📅 16: janvier 10:00", "📅 7 decembre, 14:00", "📅 8 decembre, 12:00", "Non, Merci", "retour à l'acceuil"]
+        listReply = listReply_Message(number, options, body, footer, "sed5",messageId)
+        list.append(listReply)
+    elif "16: janvier 10:00" in text:
+        body = "Excellent, vous avez sélectionné la réunion du 16 janvier 10 heures. Je vous enverrai un rappel la veille. Voulez-vous confirmer le rendez-vous ?"
+        footer = "Equipe Assurema"
+        options = ["✅ Oui", "❌ Non, Merci.", "retour à l'acceuil"]
         buttonReply = buttonReply_Message(number, options, body, footer, "sed6",messageId)
         list.append(buttonReply)
-    elif "Non, merci." in text:
-        textMessage = text_Message(number,"Parfait ! N\'hésitez pas à nous contacter si vous avez d'autres questions. N'oubliez pas que nous proposons également du matériel gratuit pour la communauté - à plus tard ! 😊")
+    elif "7 decembre, 14:00" in text:
+        body = "Excellent, vous avez sélectionné la réunion du 7 decembre 14:00 heures. Je vous enverrai un rappel la veille. Voulez-vous confirmer le rendez-vous ?"
+        footer = "Equipe Assurema"
+        options = ["✅ Oui", "❌ Non, Merci.", "retour à l'acceuil"]
+        buttonReply = buttonReply_Message(number, options, body, footer, "sed6",messageId)
+        list.append(buttonReply)
+    elif "8 decembre, 12:00" in text:
+        body = "Excellent, vous avez sélectionné la réunion du 8 decembre 12:00 heures. Je vous enverrai un rappel la veille. Voulez-vous confirmer le rendez-vous ?"
+        footer = "Equipe Assurema"
+        options = ["✅ Oui", "❌ Non, Merci.", "retour à l'acceuil"]
+        buttonReply = buttonReply_Message(number, options, body, footer, "sed6",messageId)
+        list.append(buttonReply)
+    elif "oui" in text:
+        sticker = sticker_Message(number, get_media_id("pelfet", "sticker"))
+        textMessage = text_Message(number,"Très bien, Merci à Bientot")
+        enviar_Mensaje_whatsapp(sticker)
+        enviar_Mensaje_whatsapp(textMessage)
+        time.sleep(3)
+        document = document_Message(number, sett.document_url, "Prêt 👍🏻", "Business Intelligence.pdf")
+        enviar_Mensaje_whatsapp(document)
+        time.sleep(3)
+        body = "Vous souhaitez prendre rendez-vous avec l'un de nos spécialistes pour discuter plus en détail de ces services ?"
+        footer = "Equipe Assurema"
+        options = ["✅ Si", "Non", "retour à l'acceuil"]
+        replyButtonData = buttonReply_Message(number, options, body, footer, "sed4",messageId)
+        list.append(replyButtonData)
+    elif "non, merci" in text:
+        textMessage = text_Message(number,"Parfait ! N'hésitez pas à nous contacter si vous avez d'autres questions. N'oubliez pas que vous pouvez nous joindre sur ce numéro xxxxxxxxxx pour plus d'aides - à plus tard ! 😊")
         list.append(textMessage)
     else :
-        data = text_Message(number,"Je suis désolé, je n'ai pas compris ce que vous avez dit. Voulez-vous que je vous aide à choisir l'une de ces options ?")
-        list.append(data)
+        #data = text_Message(number,"Je suis désolé, je n'ai pas compris ce que vous avez dit.")
+        #list.append(data)
+        footer = "Equipe Assurema"
+        body = "Je suis désolé, je n'ai pas compris ce que vous avez dit."
+        options = ["retour à l'acceuil"]
+        replyButtonData = buttonReply_Message(number, options, body, footer, "sed3",messageId)
+        list.append(replyButtonData)
 
     for item in list:
-        envoi_Msg_whatsapp(item)
+        enviar_Mensaje_whatsapp(item)
 
-# apparemment pour le Mexique, whatsapp ajoute 521 comme préfixe au lieu de 52,
-# ce code résout ce problème.
-#def replace_start(s):
-    #if s.startswith("521"):
-        #return "52" + s[3:]
-   # else:
-       # return s
-
-# para argentina
-#def replace_start(s):
-   # if s.startswith("549"):
-       # return "54" + s[3:]
-   # else:
-       # return s
