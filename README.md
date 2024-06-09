@@ -4,9 +4,12 @@
 Impulsa tu negocio con un bot usando las apis oficiales de whatsapp.
 pueden ver el video paso a paso en el siguiente enlace: https://youtu.be/puYWiZDJnL0
 
-## Descarga el proyecto
+## Descarga el proyect##
+######## env ########
 
+VERIFY_TOKEN -> Dacey_auth
 
+######## env ########
 ```bash
 git clone https://github.com/JPierr3/bigdateros-whatsappbot-python.git
 ```
